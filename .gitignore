@@ -1,0 +1,23 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Recordings and generated outputs stay local (meetings are private)
+*.m4a
+*.mp3
+*.wav
+*.mp4
+*_chunks/
+*_transcript.txt
+*_transcript.srt
+*_plain.txt
+*_minutes.md
+*_minutes.json
+!evals/*_transcript.txt
+run.log
+.env

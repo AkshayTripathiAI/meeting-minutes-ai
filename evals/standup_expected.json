@@ -1,0 +1,15 @@
+{
+  "description": "Reference minutes for evals/standup_transcript.txt: a synthetic launch sync (text-to-speech audio transcribed by local Whisper). Matching is by owner + any keyword.",
+  "decisions": [
+    {"keywords": ["15 sept", "fifteenth", "launch"]}
+  ],
+  "action_items": [
+    {"owner": "Arjun", "keywords": ["security review", "infosec"]},
+    {"owner": "Priya", "keywords": ["export"]},
+    {"owner": null, "keywords": ["press"]}
+  ],
+  "open_questions": [
+    {"keywords": ["free trial", "trial", "pricing"]}
+  ],
+  "known_people": ["Priya", "Arjun"]
+}

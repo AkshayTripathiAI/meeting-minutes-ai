@@ -1,0 +1,8 @@
+faster-whisper>=1.2.1
+# faster-whisper 1.2.x passes an argument that PyAV 15+ removed
+av>=14,<15
+openai>=1.40          # Groq (OpenAI-compatible API) and the optional OpenAI Whisper backend
+pydantic>=2.6
+
+# dev
+pytest>=8

@@ -1,0 +1,15 @@
+[00:00:00 - 00:00:03] Good morning everyone, this is the weekly launch sync.
+[00:00:04 - 00:00:06] Priya, can you start with the beta feedback?
+[00:00:07 - 00:00:11] Sure. The beta feedback has been positive overall.
+[00:00:12 - 00:00:17] Users like the new dashboard, but three customers reported that the export button is slow.
+[00:00:18 - 00:00:22] Thanks Priya. Arjun, what about the payment integration?
+[00:00:23 - 00:00:26] The payment integration is finished and tested.
+[00:00:26 - 00:00:29] We still need the security review before going live.
+[00:00:30 - 00:00:33] OK, so here is what we decided.
+[00:00:33 - 00:00:36] We will launch on 15 September.
+[00:00:36 - 00:00:41] Arjun will book the security review with the InfoSec team by Wednesday.
+[00:00:41 - 00:00:45] Priya will fix the slow export button before the launch.
+[00:00:45 - 00:00:49] And I will send the press no to marketing by Friday.
+[00:00:49 - 00:00:53] One open question is whether we offer a free trial for the first month.
+[00:00:53 - 00:00:56] Let's discuss pricing next week.
+[00:00:56 - 00:00:59] Thanks everyone, that's all for today.
