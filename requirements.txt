@@ -4,5 +4,10 @@ av>=14,<15
 openai>=1.40          # Groq (OpenAI-compatible API) and the optional OpenAI Whisper backend
 pydantic>=2.6
 
+# web app (uvicorn minutes.web:app)
+fastapi>=0.110
+uvicorn>=0.29
+python-multipart>=0.0.9
+
 # dev
 pytest>=8

@@ -149,7 +149,8 @@ def _drop_unknown_timestamps(m: Minutes, known: set[str]) -> Minutes:
     return m
 
 
-def summarize(segments: list[Segment], llm: LLM, language: str = "English", max_chars: int = WINDOW_CHARS) -> Minutes:
+def summarize(segments: list[Segment], llm: LLM, language: str = "English", max_chars: int = WINDOW_CHARS,
+              progress=print) -> Minutes:
     lines = transcript_lines(segments)
     if not lines:
         return Minutes(summary="The recording contained no recognisable speech.")
@@ -159,14 +160,14 @@ def summarize(segments: list[Segment], llm: LLM, language: str = "English", max_
     parts = windows(lines, max_chars)
 
     if len(parts) == 1:
-        print("Writing minutes (1 pass)...")
+        progress("Writing minutes...")
         minutes = ask(llm, final_sys, f"Transcript:\n{parts[0]}")
         return _drop_unknown_timestamps(minutes, known)
 
     notes = []
     for i, part in enumerate(parts, 1):
-        print(f"Taking notes on part {i}/{len(parts)}...")
+        progress(f"Taking notes on part {i} of {len(parts)}...")
         notes.append(ask(llm, map_sys, f"Transcript part {i} of {len(parts)}:\n{part}"))
-    print("Merging notes into minutes...")
+    progress("Merging notes into minutes...")
     merged = "\n\n".join(f"Notes for part {i}:\n{n.model_dump_json()}" for i, n in enumerate(notes, 1))
     return _drop_unknown_timestamps(ask(llm, reduce_sys, merged), known)

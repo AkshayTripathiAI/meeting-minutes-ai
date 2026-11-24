@@ -3,6 +3,7 @@
     python -m minutes meeting.m4a                        # local Whisper, English minutes via Groq
     python -m minutes meeting.mp3 --language hi          # Hindi audio
     python -m minutes meeting.mp3 --task transcribe      # keep the original language in the transcript
+    python -m minutes meeting.mp3 --backend groq         # Groq Whisper API instead of local (fast)
     python -m minutes meeting.mp3 --backend openai       # OpenAI Whisper API instead of local
     python -m minutes meeting.mp3 --no-minutes           # transcript only, no LLM
     python -m minutes --from-transcript notes_transcript.txt   # minutes for an existing transcript
@@ -18,7 +19,7 @@ from pathlib import Path
 from .audio import require_ffmpeg, split_audio
 from .render import write_minutes, write_transcripts
 from .summarize import DEFAULT_MODEL, GroqLLM, summarize
-from .transcribe import LocalWhisper, OpenAIWhisper, Segment, transcribe
+from .transcribe import GroqWhisper, LocalWhisper, OpenAIWhisper, Segment, transcribe
 
 _LINE = re.compile(r"^\[(\d{2}):(\d{2}):(\d{2})(?: - (\d{2}):(\d{2}):(\d{2}))?\]\s*(.*)$")
 
@@ -41,7 +42,8 @@ def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog="minutes", description="Turn a meeting recording into a transcript and minutes.")
     ap.add_argument("audio", type=Path, nargs="?", help="audio/video file (mp3, m4a, wav, mp4...)")
     ap.add_argument("--from-transcript", type=Path, help="skip audio; summarise an existing *_transcript.txt")
-    ap.add_argument("--backend", choices=["local", "openai"], default="local", help="speech-to-text backend")
+    ap.add_argument("--backend", choices=["local", "groq", "openai"], default="local",
+                    help="speech-to-text: local Whisper (private), Groq Whisper API (fast, free tier) or OpenAI")
     ap.add_argument("--task", choices=["translate", "transcribe"], default="translate",
                     help="translate = English transcript; transcribe = keep the spoken language")
     ap.add_argument("--language", help="spoken language code, e.g. hi, en, ta (auto-detect if omitted)")
@@ -82,8 +84,12 @@ def main(argv: list[str] | None = None) -> None:
         chunks = split_audio(args.audio, work, args.chunk_minutes, args.overlap_seconds)
         print(f"  -> {len(chunks)} chunks")
 
-        engine = (LocalWhisper(args.model, args.task, args.language) if args.backend == "local"
-                  else OpenAIWhisper(args.task, args.language))
+        if args.backend == "local":
+            engine = LocalWhisper(args.model, args.task, args.language)
+        elif args.backend == "groq":
+            engine = GroqWhisper(args.task, args.language)
+        else:
+            engine = OpenAIWhisper(args.task, args.language)
         segments = transcribe(chunks, engine, args.task)
         if not args.keep_chunks:
             shutil.rmtree(work, ignore_errors=True)

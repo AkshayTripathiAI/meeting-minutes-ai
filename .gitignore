@@ -6,6 +6,7 @@ __pycache__/
 *.egg-info/
 build/
 dist/
+node_modules/
 
 # Recordings and generated outputs stay local (meetings are private)
 *.m4a
@@ -19,5 +20,6 @@ dist/
 *_minutes.md
 *_minutes.json
 !evals/*_transcript.txt
+!minutes/samples/*.mp3
 run.log
 .env

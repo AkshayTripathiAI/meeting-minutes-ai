@@ -60,6 +60,43 @@ class OpenAIWhisper:
         return [(s.start, s.end, s.text.strip()) for s in (r.segments or [])]
 
 
+class GroqWhisper:
+    """Whisper large-v3 on Groq: fast, free tier, no GPU needed. Needs GROQ_API_KEY.
+
+    Used by the hosted web app, where running Whisper locally won't fit a small instance.
+    """
+
+    def __init__(self, task: str, language: str | None, api_key: str | None = None):
+        import os
+
+        from openai import OpenAI
+
+        key = api_key or os.environ.get("GROQ_API_KEY")
+        if not key:
+            raise SystemExit("Set GROQ_API_KEY to use the Groq speech-to-text backend.")
+        self.client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=key, max_retries=4, timeout=300)
+        self.task, self.language = task, language
+
+    def run(self, path):
+        with open(path, "rb") as f:
+            if self.task == "translate":
+                # Groq's translation endpoint supports whisper-large-v3 (not the turbo variant).
+                r = self.client.audio.translations.create(
+                    model="whisper-large-v3", file=f, response_format="verbose_json"
+                )
+            else:
+                kw = {"language": self.language} if self.language else {}
+                r = self.client.audio.transcriptions.create(
+                    model="whisper-large-v3-turbo", file=f, response_format="verbose_json", **kw
+                )
+        segments = getattr(r, "segments", None) or []
+        out = []
+        for s in segments:
+            get = s.get if isinstance(s, dict) else lambda k, s=s: getattr(s, k)
+            out.append((float(get("start")), float(get("end")), str(get("text")).strip()))
+        return out
+
+
 def stitch(chunks: list[Chunk], results: list[list[tuple[float, float, str]] | Exception]) -> list[Segment]:
     """Shift chunk-relative timestamps to the full timeline and drop overlap duplicates.
 
@@ -81,11 +118,15 @@ def stitch(chunks: list[Chunk], results: list[list[tuple[float, float, str]] | E
     return out
 
 
-def transcribe(chunks: list[Chunk], engine: Engine, task: str = "translate") -> list[Segment]:
+def transcribe(chunks: list[Chunk], engine: Engine, task: str = "translate", progress=None) -> list[Segment]:
     results: list[list[tuple[float, float, str]] | Exception] = []
     verb = "Translating" if task == "translate" else "Transcribing"
     for i, chunk in enumerate(chunks, 1):
-        print(f"[{i}/{len(chunks)}] {verb} {chunk.path.name} ({fmt_ts(chunk.window_start)}-{fmt_ts(chunk.window_end)})")
+        message = f"{verb} part {i} of {len(chunks)} ({fmt_ts(chunk.window_start)}-{fmt_ts(chunk.window_end)})"
+        if progress:
+            progress(message, i - 1, len(chunks))
+        else:
+            print(f"[{i}/{len(chunks)}] {message}")
         try:
             results.append(engine.run(chunk.path))
         except Exception as exc:  # keep going: one bad chunk shouldn't lose the meeting
